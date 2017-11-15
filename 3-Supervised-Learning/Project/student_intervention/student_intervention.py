@@ -54,7 +54,7 @@ student_data.head()
 student_data.info()
 
 
-# In[5]:
+# In[4]:
 
 
 from __future__ import division
@@ -90,7 +90,7 @@ print "Graduation rate of the class: {:.2f}%".format(grad_rate)
 # 
 # Run the code cell below to separate the student data into feature and target columns to see if any features are non-numeric.
 
-# In[6]:
+# In[5]:
 
 
 # Extract feature columns
@@ -120,7 +120,7 @@ print X_all.head()
 # 
 # These generated columns are sometimes called _dummy variables_, and we will use the [`pandas.get_dummies()`](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.get_dummies.html?highlight=get_dummies#pandas.get_dummies) function to perform this transformation. Run the code cell below to perform the preprocessing routine discussed in this section.
 
-# In[7]:
+# In[6]:
 
 
 def preprocess_features(X):
@@ -151,7 +151,7 @@ X_all = preprocess_features(X_all)
 print "Processed feature columns ({} total features):\n{}".format(len(X_all.columns), list(X_all.columns))
 
 
-# In[8]:
+# In[7]:
 
 
 X_all.head()
@@ -164,7 +164,7 @@ X_all.head()
 #   - Set a `random_state` for the function(s) you use, if provided.
 #   - Store the results in `X_train`, `X_test`, `y_train`, and `y_test`.
 
-# In[9]:
+# In[34]:
 
 
 # TODO: Import any additional functionality you may need here
@@ -205,6 +205,43 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # - What makes this model a good candidate for the problem, given what you know about the data?
 
 # **Answer: **
+# 
+# #### Support Vector Machine
+# 
+# O SVC, classificador que usa SVM, faz a classificação encontrando o hyperplane com distancia máxima entre as classes. SVM é usado com sucesso em datasets com muitas features em campos como bioinformática [1] e biologia [2]
+# 
+# As vantagens do SVM são sua performance e eficácia ao lidar com muitas variáveis, como no caso deste dataset.
+# 
+# As desvantagens podem ser a dificuldade em encontrar o conjunto de hyperparameters correto, como o kernel.
+# 
+# Eu escolhoi o SVM por ele funcionar bem com grandes volumes de features.
+# 
+# - [1] - https://www.ncbi.nlm.nih.gov/pubmed/15130823
+# - [2] - https://noble.gs.washington.edu/papers/noble_support.html
+# 
+# 
+# #### Logistic Regression
+# 
+# Regressão Logística é um modelo popular, que usa a função sigmoid para produzir uma saída binária. Este modelo é usado em campos como testes A/B em marketing e industria financeira.
+# 
+# As vantagens são sua simplicidade e robustez que o torna menos propenso ao overfitting.
+# 
+# A principal desvantagem é que ele assume que as features podem ser linearmente separáveis
+# 
+# Ele foi escolhido por ter saída binária, pode ser eficiente e por ser pouco propenso ao overfitting.
+# 
+# 
+# #### Random Forests
+# 
+# É a combinação de árvores de decisão que são criadas e treinadas individualmente. O algoritmo produz sua classificação ao calcular a moda das classificações de cada árvore de decisão individual. Um exemplo de aplicação é a previsão de preços de ações [1]
+# 
+# As vantagens são sua performance e eficiência em grandes volumes de dados tanto em relação aos exemplos de treinamento quanto de features.
+# 
+# As desvantagens são a possibilidade de overfitting, especialmente quando existem ruídos nos dados.
+# 
+# Ele foi escolhido por trabalhar bem com features binárias e por ter boa acurácia.
+# 
+# - [1] - http://www.scientific.net/AMM.740.947
 
 # ### Setup
 # Run the code cell below to initialize three helper functions which you can use for training and testing the three supervised learning models you've chosen above. The functions are as follows:
@@ -213,7 +250,7 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # - `train_predict` - takes as input a classifier, and the training and testing data, and performs `train_clasifier` and `predict_labels`.
 #  - This function will report the F<sub>1</sub> score for both the training and testing data separately.
 
-# In[10]:
+# In[9]:
 
 
 def train_classifier(clf, X_train, y_train):
@@ -266,18 +303,18 @@ def train_predict(clf, X_train, y_train, X_test, y_test):
 # - Fit each model with each training set size and make predictions on the test set (9 in total).  
 # **Note:** Three tables are provided after the following code cell which can be used to store your results.
 
-# In[20]:
+# In[11]:
 
 
 # TODO: Import the three supervised learning models from sklearn
 from sklearn.svm import SVC
-from sklearn.linear_model import SGDClassifier
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 
 # TODO: Initialize the three models
 clf_A = SVC(random_state=42)
-clf_B = SGDClassifier(random_state=42)
-clf_C = KNeighborsClassifier()
+clf_B = LogisticRegression(random_state=42)
+clf_C = RandomForestClassifier(random_state=42)
 
 # TODO: Set up the training set sizes
 X_train_100 = X_train[:100]
@@ -303,29 +340,29 @@ for model in (clf_A, clf_B, clf_C):
 # ### Tabular Results
 # Edit the cell below to see how a table can be designed in [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#tables). You can record your results from above in the tables provided.
 
-# ** Classifer 1 - ?**  
+# ** Classifer 1 - SVC**  
 # 
-# | Training Set Size | Training Time | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
+# | Training Set Size | Training Time           | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
 # | :---------------: | :---------------------: | :--------------------: | :--------------: | :-------------: |
-# | 100               |                         |                        |                  |                 |
-# | 200               |        EXAMPLE          |                        |                  |                 |
-# | 300               |                         |                        |                  |    EXAMPLE      |
+# | 100               |        0.0027           |         0.0012         |      0.8354      |      0.8077     |
+# | 200               |        0.0055           |         0.0019         |      0.8662      |      0.8235     |
+# | 300               |        0.0098           |         0.0025         |      0.8541      |      0.8105     |
 # 
-# ** Classifer 2 - ?**  
+# ** Classifer 2 - LogisticRegression**  
 # 
-# | Training Set Size | Training Time | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
+# | Training Set Size | Training Time           | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
 # | :---------------: | :---------------------: | :--------------------: | :--------------: | :-------------: |
-# | 100               |                         |                        |                  |                 |
-# | 200               |     EXAMPLE             |                        |                  |                 |
-# | 300               |                         |                        |                  |     EXAMPLE     |
+# | 100               |        0.0013           |         0.0002         |     0.8714       |     0.7463      |
+# | 200               |        0.0018           |         0.0002         |     0.8514       |     0.7883      |
+# | 300               |        0.0039           |         0.0002         |     0.8337       |     0.7826      |
 # 
-# ** Classifer 3 - ?**  
+# ** Classifer 3 - RandomForestClassifier**  
 # 
-# | Training Set Size | Training Time | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
+# | Training Set Size | Training Time           | Prediction Time (test) | F1 Score (train) | F1 Score (test) |
 # | :---------------: | :---------------------: | :--------------------: | :--------------: | :-------------: |
-# | 100               |                         |                        |                  |                 |
-# | 200               |                         |                        |                  |                 |
-# | 300               |                         |                        |                  |                 |
+# | 100               |        0.0233           |         0.0010         |     1.0000       |     0.7188      |
+# | 200               |        0.0229           |         0.0010         |     0.9889       |     0.7846      |
+# | 300               |        0.0237           |         0.0010         |     0.9851       |     0.7407      |
 
 # ## Choosing the Best Model
 # In this final section, you will choose from the three supervised learning models the *best* model to use on the student data. You will then perform a grid search optimization for the model over the entire training set (`X_train` and `y_train`) by tuning at least one parameter to improve upon the untuned model's F<sub>1</sub> score. 
@@ -334,11 +371,16 @@ for model in (clf_A, clf_B, clf_C):
 # *Based on the experiments you performed earlier, in one to two paragraphs, explain to the board of supervisors what single model you chose as the best model. Which model is generally the most appropriate based on the available data, limited resources, cost, and performance?*
 
 # **Answer: **
+# 
+# Com base nos resultados obtidos, sem dúvida o melhor modelo é o SVM que obteve o melhor score no conjunto de testes, chegando a 82% de acurácia. Outro ponto a favor do SVM é que a diferença entre o score de treino e teste foi a menor, o que mostra menor tendencia ao overfit.
+# 
 
 # ### Question 4 - Model in Layman's Terms
 # *In one to two paragraphs, explain to the board of directors in layman's terms how the final model chosen is supposed to work. Be sure that you are describing the major qualities of the model, such as how the model is trained and how the model makes a prediction. Avoid using advanced mathematical or technical jargon, such as describing equations or discussing the algorithm implementation.*
 
 # **Answer: **
+# 
+# O modelo de SVM está tentando encontrar algo chamado hiperplano - um limite de decisão que separa um exemplo de classe de outro, este é o caso dos alunos que passaram daqueles que não passaram. Este limite de decisão é ideal em termos da maior margem entre duas classes que estamos tentando separar. Então, quando sua tarefa é fazer uma previsão, o modelo usa esse limite para determinar qual classe atribuir ao novo data point - classe "passou" ou "não passou" com base na posição do novo data point em relação ao limite.
 
 # ### Implementation: Model Tuning
 # Fine tune the chosen model. Use grid search (`GridSearchCV`) with at least one important parameter tuned with at least 3 different values. You will need to use the entire training set for this. In the code cell below, you will need to implement the following:
@@ -351,30 +393,38 @@ for model in (clf_A, clf_B, clf_C):
 # - Perform grid search on the classifier `clf` using `f1_scorer` as the scoring method, and store it in `grid_obj`.
 # - Fit the grid search object to the training data (`X_train`, `y_train`), and store it in `grid_obj`.
 
-# In[ ]:
+# In[37]:
 
 
 # TODO: Import 'GridSearchCV' and 'make_scorer'
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import make_scorer
+
 
 # TODO: Create the parameters list you wish to tune
-parameters = None
+parameters = {
+    'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 
+    'C': [0.5, 1.0, 1.5, 2.0],
+    'degree': [2,3,4,5]
+}
 
 # TODO: Initialize the classifier
-clf = None
+clf = SVC(random_state=42)
 
 # TODO: Make an f1 scoring function using 'make_scorer' 
-f1_scorer = None
+f1_scorer = make_scorer(score_func=f1_score, pos_label='yes')
 
 # TODO: Perform grid search on the classifier using the f1_scorer as the scoring method
-grid_obj = None
+grid_obj = GridSearchCV(clf, param_grid=parameters, scoring=f1_scorer)
 
 # TODO: Fit the grid search object to the training data and find the optimal parameters
-grid_obj = None
+grid_obj = grid_obj.fit(X_train, y_train)
 
 # Get the estimator
 clf = grid_obj.best_estimator_
 
 # Report the final F1 score for training and testing after parameter tuning
+print "Best parameters: %s" % grid_obj.best_params_ 
 print "Tuned model has a training F1 score of {:.4f}.".format(predict_labels(clf, X_train, y_train))
 print "Tuned model has a testing F1 score of {:.4f}.".format(predict_labels(clf, X_test, y_test))
 
@@ -383,6 +433,8 @@ print "Tuned model has a testing F1 score of {:.4f}.".format(predict_labels(clf,
 # *What is the final model's F<sub>1</sub> score for training and testing? How does that score compare to the untuned model?*
 
 # **Answer: **
+# 
+# A pontuação F1 do modelo final para o conjunto de treinamento ficou em 0.8299 e para o conjunto de testes em 0.8205. O escore F1 para o conjunto de teste no modelo tunado é superior ao do modelo não tunado, o que não se repete no conjunto de treinamento.
 
 # > **Note**: Once you have completed all of the code implementations and successfully answered each question above, you may finalize your work by exporting the iPython Notebook as an HTML document. You can do this by using the menu above and navigating to  
 # **File -> Download as -> HTML (.html)**. Include the finished document along with this notebook as your submission.
