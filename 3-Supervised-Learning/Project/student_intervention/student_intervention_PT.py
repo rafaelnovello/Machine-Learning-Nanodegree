@@ -21,7 +21,7 @@
 # ## Observando os Dados
 # Execute a célula de código abaixo para carregar as bibliotecas de Python necessárias e os dados sobre os estudantes. Note que a última coluna desse conjunto de dados, `'passed'`, será nosso rótulo alvo (se o aluno foi ou não aprovado). As outras colunas são atributos sobre cada aluno.
 
-# In[18]:
+# In[1]:
 
 
 # Importar bibliotecas
@@ -61,7 +61,7 @@ student_data.head()
 student_data.info()
 
 
-# In[25]:
+# In[4]:
 
 
 plt.figure(figsize = (16,6))
@@ -70,7 +70,7 @@ sns.set(style='whitegrid')
 sns.heatmap(student_data.corr(), annot=True, cmap="YlGnBu", center=0);
 
 
-# In[4]:
+# In[18]:
 
 
 from __future__ import division
@@ -79,7 +79,7 @@ from __future__ import division
 n_students = student_data.shape[0]
 
 # TODO: Calculate number of features
-n_features = student_data.shape[1]
+n_features = student_data[student_data.columns[:-1]].shape[1]
 
 # TODO: Calculate passing students
 n_passed = student_data[student_data.passed == 'yes'].shape[0]
@@ -106,7 +106,7 @@ print "Graduation rate of the class: {:.2f}%".format(grad_rate)
 # 
 # Execute a célula de código abaixo para separar os dados dos estudantes em atributos e variáveis-alvo e verificar se algum desses atributos é não numérico.
 
-# In[26]:
+# In[19]:
 
 
 # Extraia as colunas dos atributo
@@ -136,7 +136,7 @@ print X_all.head()
 # 
 # Essas colunas geradas são por vezes chamadas de _variáveis postiças_ (em inglês: _dummy variables_), e nós iremos utilizar a função [`pandas.get_dummies()`](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.get_dummies.html?highlight=get_dummies#pandas.get_dummies) para fazer essa conversão. Execute a célula de código abaixo para executar a rotina de pré-processamento discutida nesta seção.
 
-# In[27]:
+# In[20]:
 
 
 def preprocess_features(X):
@@ -174,7 +174,7 @@ print "Processed feature columns ({} total features):\n{}".format(len(X_all.colu
 #   - Estabelecer um `random_state` para as funções que você utiliza, se a opção existir.
 #   - Armazene os resultados em `X_train`, `X_test`, `y_train` e `y_test`.
 
-# In[28]:
+# In[24]:
 
 
 # TODO: Import any additional functionality you may need here
@@ -188,7 +188,12 @@ num_train = 300
 num_test = X_all.shape[0] - num_train
 
 # TODO: Shuffle and split the dataset into the number of training and testing points above
-X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, train_size=num_train)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_all, y_all, 
+    train_size=num_train, 
+    random_state=42,
+    stratify=y_all
+)
 
 # Show the results of the split
 print "Training set has {} samples.".format(X_train.shape[0])
@@ -220,11 +225,11 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # 
 # O SVC, classificador que usa SVM, faz a classificação encontrando o hyperplane com distancia máxima entre as classes. SVM é usado com sucesso em datasets com muitas features em campos como bioinformática [1] e biologia [2]
 # 
-# As vantagens do SVM são sua performance e eficácia ao lidar com muitas variáveis, como no caso deste dataset.
+# As vantagens do SVM são sua performance e eficácia ao lidar com muitas variáveis, como no caso deste dataset. Outra vantagem do SVM é a possibilidade de usar o parametro kernel para separar as classes de forma não linear, o algoritmo faz isso adicionando novas dimensões usando valores calculados e assim encontrando o hyperplane que melhor separe as classes usando estas novas dimensões adicionadas.
 # 
 # As desvantagens podem ser a dificuldade em encontrar o conjunto de hyperparameters correto, como o kernel.
 # 
-# Eu escolhoi o SVM por ele funcionar bem com grandes volumes de features.
+# Eu escolhoi o SVM por ele ser um algoritmo muito usado, por performar bem quando adicionamos novas dimensões e ser um algoritmo que busca o hyperplane com a maior distancia entre as classes.
 # 
 # - [1] - https://www.ncbi.nlm.nih.gov/pubmed/15130823
 # - [2] - https://noble.gs.washington.edu/papers/noble_support.html
@@ -232,7 +237,7 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # 
 # #### Logistic Regression
 # 
-# Regressão Logística é um modelo popular, que usa a função sigmoid para produzir uma saída binária. Este modelo é usado em campos como testes A/B em marketing e industria financeira.
+# Regressão Logística é um modelo popular, que usa um threshold para produzir uma saída binária. Este modelo é usado em campos como testes A/B em marketing e industria financeira.
 # 
 # As vantagens são sua simplicidade e robustez que o torna menos propenso ao overfitting.
 # 
@@ -260,7 +265,7 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # - `train_predict` - recebe como entrada um classificador, e dados de treinamento e teste, e executa `train_clasifier` e `predict_labels`.
 #  - Essa função vai dar a pontuação F<sub>1</sub> tanto para os dados de treinamento como para os de teste, separadamente.
 
-# In[29]:
+# In[23]:
 
 
 def train_classifier(clf, X_train, y_train):
@@ -390,6 +395,12 @@ for model in (clf_A, clf_B, clf_C):
 # **Resposta: **
 # 
 # O modelo de SVM está tentando encontrar algo chamado hiperplano - um limite de decisão que separa um exemplo de classe de outro, este é o caso dos alunos que passaram daqueles que não passaram. Este limite de decisão é ideal em termos da maior margem entre duas classes que estamos tentando separar. Então, quando sua tarefa é fazer uma previsão, o modelo usa esse limite para determinar qual classe atribuir ao novo data point - classe "passou" ou "não passou" com base na posição do novo data point em relação ao limite.
+# 
+# Quando a separação entre as classes não pode ser feita de forma linear, o SVM pode calcular novas features para produzir novas dimensões e, com as novas dimensões, encontrar um plano que separe as classes de forma linear. A este processo se da o nome de *"kernel trick"* e este processo pode se melhor entendido com a imagem abaixo:
+# 
+# ![rotate.gif](http://blog.pluskid.org/wp-content/uploads/2010/09/rotate.gif)
+# 
+# Nesta imagem vemos, no inicio, duas classes de dados que não podem ser separados de forma linear (ambas as classes fazem "uma curva"), mas ao decorrer do movimento vemos que em uma 3ª dimensão (profundidade) os dados podem ser separados de forma linear.
 
 # ### Implementação: Calibrando o Modelo
 # Calibre o modelo escolhido. Utilize busca em matriz (`GridSearchCV`) com, pelo menos, um parâmetro importante calibrado com, pelo menos, 3 valores diferentes. Você vai precisar utilizar todo o conjunto de treinamento para isso. Na célula de código abaixo, você deve implementar o seguinte:
@@ -402,20 +413,21 @@ for model in (clf_A, clf_B, clf_C):
 # - Execute uma busca em matriz no classificador `clf` utilizando o `f1_scorer` como método de pontuação e armazene-o em `grid_obj`.
 # - Treine o objeto de busca em matriz com os dados de treinamento (`X_train`, `y_train`) e armazene-o em `grid_obj`.
 
-# In[31]:
+# In[29]:
 
 
 # TODO: Import 'GridSearchCV' and 'make_scorer'
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import make_scorer
+from sklearn.svm import SVC
 
 
 # TODO: Create the parameters list you wish to tune
-parameters = {
-    'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 
-    'C': [0.5, 1.0, 1.5, 2.0],
-    'degree': [2,3,4,5]
-}
+parameters = [
+    {'C': [0.5, 1, 1.5], 'kernel': ['linear']},
+    {'C': [0.5, 1, 1.5], 'degree':[2, 3, 4], 'kernel': ['poly']},
+    {'C': [0.5, 1, 1.5], 'gamma': [0.5, 0.1, 0.01], 'kernel': ['rbf']}
+]
 
 # TODO: Initialize the classifier
 clf = SVC(random_state=42)
@@ -443,7 +455,7 @@ print "Tuned model has a testing F1 score of {:.4f}.".format(predict_labels(clf,
 
 # **Resposta: **
 # 
-# A pontuação F1 do modelo final para o conjunto de treinamento ficou em 0.8230 e para o conjunto de testes em 0.8500. O escore F1 para o conjunto de teste no modelo tunado é superior ao do modelo não tunado, o que não se repete no conjunto de treinamento.
+# A pontuação F1 do modelo final para o conjunto de treinamento ficou em 0.9781 e para o conjunto de testes em 0.8258. O escore F1 para o conjunto de treinamento no modelo tunado é superior ao do modelo não tunado, o que não se repete no conjunto de teste.
 
 # > **Nota**: Uma vez que você completou todas as implementações de código e respondeu todas as questões acima com êxito, você pode finalizar seu trabalho exportando o iPython Nothebook como um document HTML. Você pode fazer isso utilizando o menu acima e navegando para  
 # **File -> Download as -> HTML (.html)**. Inclua a documentação final junto com o notebook para o envio do seu projeto.

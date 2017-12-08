@@ -208,13 +208,13 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # 
 # #### Support Vector Machine
 # 
-# O SVC, classificador que usa SVM, faz a classificação encontrando o hyperplane com distancia máxima entre as classes. SVM é usado com sucesso em datasets com muitas features em campos como bioinformática [1] e biologia [2]
+# The SVC, a classifier that uses SVM, does classification by finding the hyperplane with maximum distance between classes. SVM is used successfully in datasets with many features in fields such as bioinformatics [1] and biology [2]
 # 
-# As vantagens do SVM são sua performance e eficácia ao lidar com muitas variáveis, como no caso deste dataset.
+# The advantages of SVM are its performance and effectiveness when dealing with many variables, as in the case of this dataset.
 # 
-# As desvantagens podem ser a dificuldade em encontrar o conjunto de hyperparameters correto, como o kernel.
+# The disadvantages may be the difficulty in finding the correct set of hyperparameters, such as the kernel.
 # 
-# Eu escolhoi o SVM por ele funcionar bem com grandes volumes de features.
+# I chose SVM because it works well with large volumes of features.
 # 
 # - [1] - https://www.ncbi.nlm.nih.gov/pubmed/15130823
 # - [2] - https://noble.gs.washington.edu/papers/noble_support.html
@@ -222,24 +222,24 @@ print "Testing set has {} samples.".format(X_test.shape[0])
 # 
 # #### Logistic Regression
 # 
-# Regressão Logística é um modelo popular, que usa a função sigmoid para produzir uma saída binária. Este modelo é usado em campos como testes A/B em marketing e industria financeira.
+# Logistic Regression is a popular model, which uses the sigmoid function to produce a binary output. This model is used in fields such as A/B testing in marketing and financial industry.
 # 
-# As vantagens são sua simplicidade e robustez que o torna menos propenso ao overfitting.
+# The advantages are its simplicity and robustness which makes it less prone to overfitting.
 # 
-# A principal desvantagem é que ele assume que as features podem ser linearmente separáveis
+# The main disadvantage is that it assumes that the features can be linearly separable.
 # 
-# Ele foi escolhido por ter saída binária, pode ser eficiente e por ser pouco propenso ao overfitting.
+# It was chosen because it has binary output, can be efficient and is not very prone to overfitting.
 # 
 # 
 # #### Random Forests
 # 
-# É a combinação de árvores de decisão que são criadas e treinadas individualmente. O algoritmo produz sua classificação ao calcular a moda das classificações de cada árvore de decisão individual. Um exemplo de aplicação é a previsão de preços de ações [1]
+# It is the combination of decision trees that are individually created and trained. The algorithm produces its classification when calculating the fashion of the classifications of each individual decision tree. An example of application is the forecast of stock prices [1]
 # 
-# As vantagens são sua performance e eficiência em grandes volumes de dados tanto em relação aos exemplos de treinamento quanto de features.
+# The advantages are its performance and efficiency in large volumes of data both in relation to training examples and features.
 # 
-# As desvantagens são a possibilidade de overfitting, especialmente quando existem ruídos nos dados.
+# The disadvantages are the possibility of overfitting, especially when there are noises in the data.
 # 
-# Ele foi escolhido por trabalhar bem com features binárias e por ter boa acurácia.
+# It was chosen for working well with binary features and for having good accuracy.
 # 
 # - [1] - http://www.scientific.net/AMM.740.947
 
@@ -372,7 +372,7 @@ for model in (clf_A, clf_B, clf_C):
 
 # **Answer: **
 # 
-# Com base nos resultados obtidos, sem dúvida o melhor modelo é o SVM que obteve o melhor score no conjunto de testes, chegando a 82% de acurácia. Outro ponto a favor do SVM é que a diferença entre o score de treino e teste foi a menor, o que mostra menor tendencia ao overfit.
+# Based on the results obtained, there is no doubt the best model is the SVM that obtained the best score in the tests set, reaching 82% of accuracy. Another point in favor of SVM is that the difference between the training and test scores was the lowest, which shows a lower tendency to overfit.
 # 
 
 # ### Question 4 - Model in Layman's Terms
@@ -380,7 +380,7 @@ for model in (clf_A, clf_B, clf_C):
 
 # **Answer: **
 # 
-# O modelo de SVM está tentando encontrar algo chamado hiperplano - um limite de decisão que separa um exemplo de classe de outro, este é o caso dos alunos que passaram daqueles que não passaram. Este limite de decisão é ideal em termos da maior margem entre duas classes que estamos tentando separar. Então, quando sua tarefa é fazer uma previsão, o modelo usa esse limite para determinar qual classe atribuir ao novo data point - classe "passou" ou "não passou" com base na posição do novo data point em relação ao limite.
+# The SVM model is trying to find something called a hyperplane - a decision boundary separating one class example from another, this is the case of students who have passed from those who have not. This decision boundary is ideal in terms of the greater margin between the two classes we are trying to separate. So when your task is to make a prediction, the model uses this limit to determine which class to assign to the new data point - class "passed" or "not passed" based on the position of the new data point in relation to the threshold.
 
 # ### Implementation: Model Tuning
 # Fine tune the chosen model. Use grid search (`GridSearchCV`) with at least one important parameter tuned with at least 3 different values. You will need to use the entire training set for this. In the code cell below, you will need to implement the following:
@@ -434,7 +434,7 @@ print "Tuned model has a testing F1 score of {:.4f}.".format(predict_labels(clf,
 
 # **Answer: **
 # 
-# A pontuação F1 do modelo final para o conjunto de treinamento ficou em 0.8299 e para o conjunto de testes em 0.8205. O escore F1 para o conjunto de teste no modelo tunado é superior ao do modelo não tunado, o que não se repete no conjunto de treinamento.
+# The F1 score of the final model for the training set was 0.8299 and for the test set at 0.8205. The F1 score for the test set in the tuned model is higher than that of the unattended model, which is not repeated in the training set.
 
 # > **Note**: Once you have completed all of the code implementations and successfully answered each question above, you may finalize your work by exporting the iPython Notebook as an HTML document. You can do this by using the menu above and navigating to  
 # **File -> Download as -> HTML (.html)**. Include the finished document along with this notebook as your submission.
