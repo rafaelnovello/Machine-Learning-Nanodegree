@@ -52,25 +52,18 @@ except:
 display(data.describe())
 
 
-# In[12]:
-
-
-
-
-
 # ### Implementação: Selecionando Amostras
 # Para melhor compreensão da clientela e como seus dados vão se transformar no decorrer da análise, é melhor selecionar algumas amostras de dados de pontos e explorá-los com mais detalhes. No bloco de código abaixo, adicione **três** índices de sua escolha para a lista de `indices` que irá representar os clientes que serão acompanhados. Sugerimos que você tente diferentes conjuntos de amostras até obter clientes que variam significativamente entre si.
 
-# In[14]:
+# In[6]:
 
 
-# TODO: Selecione três índices de sua escolha que você gostaria de obter como amostra do conjunto de dados
 indices = ["Fresh","Grocery","Delicatessen"]
 
 # Crie um DataFrame das amostras escolhidas
-samples = pd.DataFrame(data[indices], columns = data.keys()).reset_index(drop = True)
+samples = data[indices].copy()
 print "Chosen samples of wholesale customers dataset:"
-display(samples)
+samples.head(15)
 
 
 # ### Questão 1
@@ -79,6 +72,12 @@ display(samples)
 # **Dica:** Exemplos de estabelecimentos incluem lugares como mercados, cafés e varejistas, entre outros. Evite utilizar nomes para esses padrões, como dizer *"McDonalds"* ao descrever uma amostra de cliente de restaurante.
 
 # **Resposta:**
+# 
+# Fresh - Produtos frescos, como mercado de pescados, frutas, flores e etc.
+# 
+# Grocery - Mercearia, mini mercados, padarias e etc.
+# 
+# Delicatessen - Empórios, mercados gourmet, lojas de bebidas e alimentos importados.
 
 # ### Implementação: Relevância do Atributo
 # Um pensamento interessante a se considerar é se um (ou mais) das seis categorias de produto são na verdade relevantes para entender a compra do cliente. Dito isso, é possível determinar se o cliente que comprou certa quantidade de uma categoria de produto vai necessariamente comprar outra quantidade proporcional de outra categoria de produtos? Nós podemos determinar facilmente ao treinar uma aprendizagem não supervisionada de regressão em um conjunto de dados com um atributo removido e então pontuar quão bem o modelo pode prever o atributo removido.
@@ -90,20 +89,26 @@ display(samples)
 #  - Importar uma árvore de decisão regressora, estabelecer um `random_state` e ajustar o aprendiz nos dados de treinamento.
 #  - Reportar a pontuação da previsão do conjunto de teste utilizando a função regressora `score`.
 
-# In[ ]:
+# In[49]:
 
+
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.cross_validation import train_test_split as tt_split
 
 # TODO: Fazer uma cópia do DataFrame utilizando a função 'drop' para soltar o atributo dado
-new_data = None
+new_data = data.drop('Grocery', axis=1)
 
 # TODO: Dividir os dados em conjuntos de treinamento e teste utilizando o atributo dado como o alvo
-X_train, X_test, y_train, y_test = (None, None, None, None)
+X_train, X_test, y_train, y_test = tt_split(new_data, data['Grocery'], test_size=.25, random_state=42)
 
 # TODO: Criar um árvore de decisão regressora e ajustá-la ao conjunto de treinamento
-regressor = None
+regressor = DecisionTreeRegressor()
+regressor.fit(X_train, y_train)
+
 
 # TODO: Reportar a pontuação da previsão utilizando o conjunto de teste
-score = None
+score = regressor.score(X_test, y_test)
+score
 
 
 # ### Questão 2
@@ -111,11 +116,13 @@ score = None
 # **Dica:** O coeficiente de determinação, `R^2`, é pontuado entre 0 e 1, sendo 1 o ajuste perfeito. Um `R^2` negativo indica que o modelo falhou em ajustar os dados.
 
 # **Resposta:**
+# 
+# Foi usado o atributo Grocery e a pontuação obtida foi de 69%. Eu acredito que este atributo é sim necessário para identificar os hábitos de compra dos clientes por se tratar de um perfil de compra mais essencial, como identificado na questão 1 são mercados, mercearias e afins onde são vendidos produtos mais importantes e essenciais no dia-a-dia.
 
 # ### Visualizando a Distribuição de Atributos
 # Para entender melhor o conjunto de dados, você pode construir uma matriz de dispersão de cada um dos seis atributos dos produtos presentes nos dados. Se você perceber que o atributo que você tentou prever acima é relevante para identificar um cliente específico, então a matriz de dispersão abaixo pode não mostrar nenhuma relação entre o atributo e os outros. Da mesma forma, se você acredita que o atributo não é relevante para identificar um cliente específico, a matriz de dispersão pode mostrar uma relação entre aquele e outros atributos dos dados. Execute o bloco de código abaixo para produzir uma matriz de dispersão.
 
-# In[ ]:
+# In[50]:
 
 
 # Produza uma matriz de dispersão para cada um dos pares de atributos dos dados
@@ -127,6 +134,12 @@ pd.scatter_matrix(data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 # **Dica:** Os dados são distribuídos normalmente? Onde a maioria dos pontos de dados está? 
 
 # **Resposta:**
+# 
+# Aparentemente, Grocery e Detergents_paper apresentão a maior correlação, mas Milk e Grocery e Milk e Detergents_paper também apresentão algum grau de correlação.
+# 
+# Esta correlação confirma minha suspeita em relação a importancia do atributo Grocery já que o mesmo aparenta correlação com outros atributos do dataset.
+# 
+# Os dados entre Grocery e Detergents_paper são distribuidos de forma bem linear, mostrando uma correlação direta entre eles.
 
 # ## Pré-processamento de Dados
 # Nesta seção, você irá pré-processar os dados para criar uma melhor representação dos clientes ao executar um escalonamento dos dados e detectando os discrepantes. Pré-processar os dados é geralmente um passo fundamental para assegurar que os resultados obtidos na análise são importantes e significativos.
