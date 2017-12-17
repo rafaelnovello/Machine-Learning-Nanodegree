@@ -55,7 +55,7 @@ display(data.describe())
 # ### Implementação: Selecionando Amostras
 # Para melhor compreensão da clientela e como seus dados vão se transformar no decorrer da análise, é melhor selecionar algumas amostras de dados de pontos e explorá-los com mais detalhes. No bloco de código abaixo, adicione **três** índices de sua escolha para a lista de `indices` que irá representar os clientes que serão acompanhados. Sugerimos que você tente diferentes conjuntos de amostras até obter clientes que variam significativamente entre si.
 
-# In[6]:
+# In[3]:
 
 
 indices = ["Fresh","Grocery","Delicatessen"]
@@ -89,7 +89,7 @@ samples.head(15)
 #  - Importar uma árvore de decisão regressora, estabelecer um `random_state` e ajustar o aprendiz nos dados de treinamento.
 #  - Reportar a pontuação da previsão do conjunto de teste utilizando a função regressora `score`.
 
-# In[49]:
+# In[4]:
 
 
 from sklearn.tree import DecisionTreeRegressor
@@ -122,7 +122,7 @@ score
 # ### Visualizando a Distribuição de Atributos
 # Para entender melhor o conjunto de dados, você pode construir uma matriz de dispersão de cada um dos seis atributos dos produtos presentes nos dados. Se você perceber que o atributo que você tentou prever acima é relevante para identificar um cliente específico, então a matriz de dispersão abaixo pode não mostrar nenhuma relação entre o atributo e os outros. Da mesma forma, se você acredita que o atributo não é relevante para identificar um cliente específico, a matriz de dispersão pode mostrar uma relação entre aquele e outros atributos dos dados. Execute o bloco de código abaixo para produzir uma matriz de dispersão.
 
-# In[50]:
+# In[5]:
 
 
 # Produza uma matriz de dispersão para cada um dos pares de atributos dos dados
@@ -151,14 +151,14 @@ pd.scatter_matrix(data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 #  - Atribua uma cópia dos dados para o `log_data` depois de aplicar um algoritmo de escalonamento. Utilize a função `np.log` para isso.
 #  - Atribua uma cópia da amostra do dados para o `log_samples` depois de aplicar um algoritmo de escalonamento. Novamente, utilize o `np.log`.
 
-# In[ ]:
+# In[7]:
 
 
 # TODO: Escalone os dados utilizando o algoritmo natural
-log_data = None
+log_data = np.log(data)
 
 # TODO: Escalone a amostra de dados utilizando o algoritmo natural
-log_samples = None
+log_samples = np.log(samples)
 
 # Produza uma matriz de dispersão para cada par de atributos novos-transformados
 pd.scatter_matrix(log_data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
@@ -169,11 +169,11 @@ pd.scatter_matrix(log_data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 # 
 # Execute o código abaixo para ver como a amostra de dados mudou depois do algoritmo natural ter sido aplicado a ela.
 
-# In[ ]:
+# In[9]:
 
 
 # Mostre a amostra dados log-transformada
-display(log_samples)
+log_samples.head(20)
 
 
 # ### Implementação: Detecção de Discrepantes
@@ -188,27 +188,30 @@ display(log_samples)
 # **NOTA:** Se você escolheu remover qualquer discrepante, tenha certeza que a amostra de dados não contém nenhum desses pontos!  
 #  Uma vez que você executou essa implementação, o conjunto de dado será armazenado na variável `good_data`!Once you have performed this implementation, the dataset will be stored in the variable .
 
-# In[ ]:
+# In[14]:
 
+
+outliers = []
 
 # Para cada atributo encontre os pontos de dados com máximos valores altos e baixos
 for feature in log_data.keys():
     
     # TODO: Calcule Q1 (25º percentil dos dados) para o atributo dado
-    Q1 = None
+    Q1 = np.percentile(log_data[feature], 25)
     
     # TODO: Calcule Q3 (75º percentil dos dados) para o atributo dado
-    Q3 = None
+    Q3 = np.percentile(log_data[feature], 75)
     
     # TODO: Utilize a amplitude interquartil para calcular o passo do discrepante (1,5 vezes a variação interquartil)
-    step = None
+    step = (Q3 - Q1) * 1.5
     
     # Mostre os discrepantes
     print "Data points considered outliers for the feature '{}':".format(feature)
-    display(log_data[~((log_data[feature] >= Q1 - step) & (log_data[feature] <= Q3 + step))])
+    feature_outliers = log_data[~((log_data[feature] >= Q1 - step) & (log_data[feature] <= Q3 + step))]
+    display(feature_outliers)
     
-# OPCIONAL: Selecione os índices dos pontos de dados que você deseja remover
-outliers  = []
+    # OPCIONAL: Selecione os índices dos pontos de dados que você deseja remover
+    outliers += feature_outliers.index.tolist()
 
 # Remova os discrepantes, caso nenhum tenha sido especificado
 good_data = log_data.drop(log_data.index[outliers]).reset_index(drop = True)
@@ -218,6 +221,19 @@ good_data = log_data.drop(log_data.index[outliers]).reset_index(drop = True)
 # *Há alguns pontos de dado considerados discrepantes de mais de um atributo baseado na definição acima? Esses pontos de dados deveriam ser removidos do conjunto? Se qualquer ponto de dados foi adicionado na lista `outliers` para ser removido, explique por quê.* 
 
 # **Resposta:**
+# 
+# Several datapoints were outliers for more than one feature
+# 
+# 154: An outlier for Delicatessen, Milk and Grocery.
+# 128: An outlier for Delicatessen and Fresh.
+# 75: An outlier for Detergents_Paper and Grocery.
+# 66: An outlier for Delicatessen and Fresh
+# 65: An outlier for Frozen and Fresh
+# All of the outliers are due to the abnormally low numbers which fall well below the IQR. The above mentioned outliers are more anamolous given that they cause skewed data in multiple features.
+# 
+# Considering they are orders of magnitude different to the rest of the dataset, it seems reasonable to remove these from the overall data. They add no value to any predictive models, and would only skew the results.
+# 
+# Hence, all of these data points were added to the outliers list - they fall well out of range and are very different to the 'samples' we picked earlier. An algorithm like PCA might end up removing them anyway - so in this instance we follow Occam's Razor and go for the simplest solution and trust the Tukey's Method completely, rather than cherry-picking from the algorithm.
 
 # ## Transformação de Atributo
 # Nesta seção, você irá utilizar a análise de componentes principais (PCA) para elaborar conclusões sobre a estrutura subjacente de dados de clientes do atacado Dado que ao utilizar a PCA em conjunto de dados calcula as dimensões que melhor maximizam a variância, nós iremos encontrar quais combinações de componentes de atributos melhor descrevem os consumidores.
