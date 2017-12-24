@@ -58,10 +58,10 @@ display(data.describe())
 # In[3]:
 
 
-indices = ["Fresh","Grocery","Delicatessen"]
+indices = [5,10,75]
 
 # Crie um DataFrame das amostras escolhidas
-samples = data[indices].copy()
+samples = pd.DataFrame(data.loc[indices], columns = data.keys()).reset_index(drop = True)
 print "Chosen samples of wholesale customers dataset:"
 samples.head(15)
 
@@ -73,11 +73,11 @@ samples.head(15)
 
 # **Resposta:**
 # 
-# Fresh - Produtos frescos, como mercado de pescados, frutas, flores e etc.
+# - Indice 5 (0): Restaurante - Esta amostra tem uma grande quantidade de alimentos frescos, leite e uma pequena quantidade de alimentos congelados, dando a entender que a comida é feita para consumo imediato, então é provável que seja um restaurante.
 # 
-# Grocery - Mercearia, mini mercados, padarias e etc.
+# - Indice 10 (1): Mercearia - Esta amostra tem valores altos em todas as features, com uma grande proporção de mantimentos. Isso sugere que é uma mercearia, talvez um supermercado.
 # 
-# Delicatessen - Empórios, mercados gourmet, lojas de bebidas e alimentos importados.
+# - Indice 75 (2): Fornecedor - Comidas predominantemente frescas, com um valor muito grande (bem acima do percentil 75 na feature Fresh). Isso sugere um varejista ou um produtor em massa ou um mercado de alimentos frescos.
 
 # ### Implementação: Relevância do Atributo
 # Um pensamento interessante a se considerar é se um (ou mais) das seis categorias de produto são na verdade relevantes para entender a compra do cliente. Dito isso, é possível determinar se o cliente que comprou certa quantidade de uma categoria de produto vai necessariamente comprar outra quantidade proporcional de outra categoria de produtos? Nós podemos determinar facilmente ao treinar uma aprendizagem não supervisionada de regressão em um conjunto de dados com um atributo removido e então pontuar quão bem o modelo pode prever o atributo removido.
@@ -151,7 +151,7 @@ pd.scatter_matrix(data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 #  - Atribua uma cópia dos dados para o `log_data` depois de aplicar um algoritmo de escalonamento. Utilize a função `np.log` para isso.
 #  - Atribua uma cópia da amostra do dados para o `log_samples` depois de aplicar um algoritmo de escalonamento. Novamente, utilize o `np.log`.
 
-# In[7]:
+# In[6]:
 
 
 # TODO: Escalone os dados utilizando o algoritmo natural
@@ -169,7 +169,7 @@ pd.scatter_matrix(log_data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 # 
 # Execute o código abaixo para ver como a amostra de dados mudou depois do algoritmo natural ter sido aplicado a ela.
 
-# In[9]:
+# In[7]:
 
 
 # Mostre a amostra dados log-transformada
@@ -188,7 +188,7 @@ log_samples.head(20)
 # **NOTA:** Se você escolheu remover qualquer discrepante, tenha certeza que a amostra de dados não contém nenhum desses pontos!  
 #  Uma vez que você executou essa implementação, o conjunto de dado será armazenado na variável `good_data`!Once you have performed this implementation, the dataset will be stored in the variable .
 
-# In[14]:
+# In[8]:
 
 
 outliers = []
@@ -222,18 +222,19 @@ good_data = log_data.drop(log_data.index[outliers]).reset_index(drop = True)
 
 # **Resposta:**
 # 
-# Several datapoints were outliers for more than one feature
+# Vários datapoints foram outliers para mais de uma feature
 # 
-# 154: An outlier for Delicatessen, Milk and Grocery.
-# 128: An outlier for Delicatessen and Fresh.
-# 75: An outlier for Detergents_Paper and Grocery.
-# 66: An outlier for Delicatessen and Fresh
-# 65: An outlier for Frozen and Fresh
-# All of the outliers are due to the abnormally low numbers which fall well below the IQR. The above mentioned outliers are more anamolous given that they cause skewed data in multiple features.
+# - 154: Outlier em Delicatessen, Milk e Grocery.
+# - 128: Outlier em Delicatessen ae Fresh.
+# - 75:  Outlier em Detergents_Paper e Grocery.
+# - 66:  Outlier em Delicatessen e Fresh
+# - 65:  Outlier em Frozen e Fresh
 # 
-# Considering they are orders of magnitude different to the rest of the dataset, it seems reasonable to remove these from the overall data. They add no value to any predictive models, and would only skew the results.
+# Todos os outliers são valores muito menores que a média de cada feature ou mesmo que o IQR. Os datapoints mencionados acima chamam mais a atenção por serem outliers em várias features ao mesmo tempo.
 # 
-# Hence, all of these data points were added to the outliers list - they fall well out of range and are very different to the 'samples' we picked earlier. An algorithm like PCA might end up removing them anyway - so in this instance we follow Occam's Razor and go for the simplest solution and trust the Tukey's Method completely, rather than cherry-picking from the algorithm.
+# Como os outliers são muito menores que a média do dataset acredito ser interessante remove-los para não interferirem nos resultados.
+# 
+# Desta forma, todos os outliers identificados foram adicionados para remoção por serem realmente muito distastantes da média de cada feature.
 
 # ## Transformação de Atributo
 # Nesta seção, você irá utilizar a análise de componentes principais (PCA) para elaborar conclusões sobre a estrutura subjacente de dados de clientes do atacado Dado que ao utilizar a PCA em conjunto de dados calcula as dimensões que melhor maximizam a variância, nós iremos encontrar quais combinações de componentes de atributos melhor descrevem os consumidores.
@@ -246,14 +247,17 @@ good_data = log_data.drop(log_data.index[outliers]).reset_index(drop = True)
 #  - Importar o `sklearn.decomposition.PCA` e atribuir os resultados de ajuste da PCA em seis dimensões com o `good_data` para o `pca`.
 #  - Aplicar a transformação da PCA na amostra de log-data `log_samples` utilizando `pca.transform`, e atribuir os resultados para o `pca_samples`.
 
-# In[ ]:
+# In[9]:
 
+
+from sklearn.decomposition import PCA
 
 # TODO: Aplique a PCA ao ajustar os bons dados com o mesmo número de dimensões como atributos
-pca = None
+pca = PCA(n_components=6)
+pca.fit(good_data)
 
 # TODO: Transforme a amostra de data-log utilizando o ajuste da PCA acima
-pca_samples = None
+pca_samples = pca.transform(log_samples)
 
 # Gere o plot dos resultados da PCA
 pca_results = rs.pca_results(good_data, pca)
@@ -264,11 +268,31 @@ pca_results = rs.pca_results(good_data, pca)
 # **Dica:** Uma melhora positiva dentro de uma dimensão específica corresponde a uma *melhora* do atributos de *pesos-positivos* e uma *piora* dos atributos de *pesos-negativos*. A razão de melhora ou piora é baseada nos pesos de atributos individuais.
 
 # **Resposta:**
+# 
+# Componentes 1 a 2:
+# - 1º Comp: 49,9%
+# - 2º Comp: 22,6%
+# - Total:   72,5%
+# 
+# Componentes 1 a 4:
+# - 3º Comp: 10,5%
+# - 4º Comp:  9,8%
+# - Total    92,8%
+# 
+# Cada componente representa diferentes setores de gastos dos clientes:
+# 
+# - O primeiro componente representa uma grande variedade, principalmente Detergents_Paper, mas também fornece informações para Milk e Grocery. Porem, representa mal as categorias Fresh e Frozen e precisa do 2º componente para ajudar. Ele poderia representar a categoria de gastos com "conveniência" ou "supermercado".
+# 
+# - O segundo componente representa melhor os recursos Fresh, Frozen e Delicatessen enquanto representa mal os outros recursos. Ele pode representar os clientes que estão na indústria de hotelaria ou restaurantes.
+# 
+# - O terceiro componente representa Fresh e Detergents_Paper. Ele poderia representar pequenas lojas, com itens de conveniência e pequenas quantidades de mantimentos.
+# 
+# - O quarto componente representa Frozen e Detergents_Paper. Ele poderia representar compradores em massa de produtos congelados, como importadores de peixe.
 
 # ### Observação
 # Execute o código abaixo para ver como a amostra de log transformado mudou depois de receber a transformação da PCA aplicada a ele em seis dimensões. Observe o valor numérico para as quatro primeiras dimensões para os pontos da amostra. Considere se isso for consistente com sua interpretação inicial dos pontos da amostra.
 
-# In[ ]:
+# In[10]:
 
 
 # Exiba a amostra de log-data depois de aplicada a tranformação da PCA
@@ -283,26 +307,28 @@ display(pd.DataFrame(np.round(pca_samples, 4), columns = pca_results.index.value
 #  - Atribuir a tranformação da PCA do `good_data` utilizando `pca.transform`, e atribuir os resultados para `reduced_data`.
 #  - Aplicar a transformação da PCA da amostra do log-data `log_samples` utilizando `pca.transform`, e atribuindo os resultados ao `pca_samples`.
 
-# In[ ]:
+# In[11]:
 
 
 # TODO: Aplique o PCA ao ajusta os bons dados com apenas duas dimensões
-pca = None
+pca = PCA(n_components=2)
+pca.fit(good_data)
 
 # TODO: Transforme os bons dados utilizando o ajuste do PCA acima
-reduced_data = None
+reduced_data = pca.transform(good_data)
 
 # TODO: Transforme a amostre de log-data utilizando o ajuste de PCA acima
-pca_samples = None
+pca_samples = pca.transform(log_samples)
 
 # Crie o DataFrame para os dados reduzidos
 reduced_data = pd.DataFrame(reduced_data, columns = ['Dimension 1', 'Dimension 2'])
+rs.pca_results(good_data, pca)
 
 
 # ### Observação
 # Execute o código abaixo para ver como a amostra de dados do log-transformado mudou depois de receber a transformação do PCA aplicada a ele em seis dimensões. Observe o valor numérico para as quatro primeiras dimensões para os pontos da amostra. Considere se isso for consistente com sua interpretação inicial dos pontos da amostra.
 
-# In[ ]:
+# In[12]:
 
 
 # Exiba a amostra de log-data depois de aplicada a transformação da PCA em duas dimensões
@@ -317,6 +343,12 @@ display(pd.DataFrame(np.round(pca_samples, 4), columns = ['Dimension 1', 'Dimens
 # *Quais são as vantagens de utilizar o algoritmo de clustering K-Means? Quais são as vantagens de utilizar o algoritmo de clustering do Modelo de Mistura Gaussiano? Dadas as suas observações até agora sobre os dados de clientes da distribuidora, qual dos dois algoritmos você irá utilizar e por quê.*
 
 # **Resposta:**
+# 
+# - Um algoritmo de agrupamento K-means tem menos parâmetros, como resultado, é muito mais rápido e adequado para situações com muitos dados e onde os clusters são claramente separados. Os pontos de dados pertencem de forma rígida a um cluster ou outro.
+# 
+# - Um Modelo de Mistura Gaussiano tem mais parâmetros e é um método de "agrupamento suave". Ao usar distribuições gaussianas e probabilidades, os pontos de dados podem ser atribuídos a múltiplos clusters ao mesmo tempo. Além disso, ele pode ser usado para prever probabilidades de eventos em vez de características rígidas.
+# 
+# Dada a natureza deste problema e as análises e visualizações anteriores acredito ser mais lógico adotar um Modelo Gaussiano de Mistura neste caso.
 
 # ### Implementação: Criando Clusters
 # Dependendo do problema, o número de clusters que você espera que estejam nos dados podem já ser conhecidos. Quando um número de clusters não é conhecido *a priori*, não há garantia que um dado número de clusters melhor segmenta os dados, já que não é claro quais estruturas existem nos dados – se existem. Entretanto, podemos quantificar a "eficiência" de um clustering ao calcular o *coeficiente de silhueta* de cada ponto de dados. O [coeficiente de silhueta](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html) para um ponto de dado mede quão similar ele é do seu cluster atribuído, de -1 (não similar) a 1 (similar). Calcular a *média* do coeficiente de silhueta fornece um método de pontuação simples de um dado clustering.
@@ -329,34 +361,52 @@ display(pd.DataFrame(np.round(pca_samples, 4), columns = ['Dimension 1', 'Dimens
 #  - Importar sklearn.metrics.silhouette_score e calcular o coeficiente de silhueta do `reduced_data` contra o do `preds`.
 #    - Atribuir o coeficiente de silhueta para o `score` e imprimir o resultado.
 
-# In[ ]:
+# In[20]:
 
 
-# TODO: Aplique o algoritmo de clustering de sua escolha aos dados reduzidos 
-clusterer = None
+from sklearn.mixture import GMM
+from sklearn.metrics import silhouette_score
 
-# TODO: Preveja o cluster para cada ponto de dado
-preds = None
+for i in range(2, 11):
+    # TODO: Aplique o algoritmo de clustering de sua escolha aos dados reduzidos 
+    clusterer = GMM(n_components=i, random_state=42)
+    clusterer.fit(reduced_data)
 
-# TODO: Ache os centros do cluster
-centers = None
+    # TODO: Preveja o cluster para cada ponto de dado
+    preds = clusterer.predict(reduced_data)
 
-# TODO: Preveja o cluster para cada amostra de pontos de dado transformados
-sample_preds = None
+    # TODO: Ache os centros do cluster
+    centers = clusterer.means_
 
-# TODO: Calcule a média do coeficiente de silhueta para o número de clusters escolhidos
-score = None
+    # TODO: Preveja o cluster para cada amostra de pontos de dado transformados
+    sample_preds = clusterer.predict(pca_samples)
+
+    # TODO: Calcule a média do coeficiente de silhueta para o número de clusters escolhidos
+    score = silhouette_score(reduced_data, preds)
+    print i, score
 
 
 # ### Questão 7
 # *Reporte o coeficiente de silhueta para vários números de cluster que você tentou. Dentre eles, qual a quantidade de clusters que tem a melhor pontuação de silhueta?* 
 
 # **Resposta:**
+# 
+# O coeficiente de silhueta para até 10 clusters esta acima. O melhor resultado foi obtido com 2 clusters com a pontuação de 0.44.
 
 # ### Visualização de Cluster
 # Uma vez que você escolheu o número ótimo de clusters para seu algoritmo de clustering utilizando o método de pontuação acima, agora você pode visualizar os resultados ao executar o bloco de código abaixo. Note que, para propósitos de experimentação, é de bom tom que você ajuste o número de clusters para o seu algoritmo de cluster para ver várias visualizações. A visualização final fornecida deve, entretanto, corresponder com o número ótimo de clusters. 
 
-# In[ ]:
+# In[22]:
+
+
+clusterer = GMM(n_components=2, random_state=42)
+clusterer.fit(reduced_data)
+
+# TODO: Preveja o cluster para cada ponto de dado
+preds = clusterer.predict(reduced_data)
+
+# TODO: Ache os centros do cluster
+centers = clusterer.means_
 
 
 # Mostre os resultados do clustering da implementação
@@ -371,14 +421,14 @@ rs.cluster_results(reduced_data, preds, centers, pca_samples)
 #  - Aplicar a função inversa do `np.log` para o `log_centers` utilizando `np.exp`, e atribuir os verdadeiros centros para o `true_centers`.
 # 
 
-# In[ ]:
+# In[23]:
 
 
 # TODO: Transforme inversamento os centros
-log_centers = None
+log_centers = pca.inverse_transform(centers)
 
 # TODO: Exponencie os centros
-true_centers = None
+true_centers = np.exp(log_centers)
 
 # Mostre os verdadeiros centros
 segments = ['Segment {}'.format(i) for i in range(0,len(centers))]
@@ -391,14 +441,39 @@ display(true_centers)
 # Considere o gasto total de compra de cada categoria de produto para os pontos de dados representativos acima e reporte a descrição estatística do conjunto de dados no começo do projeto. Qual conjunto de estabelecimentos cada segmentação de clientes representa?*  
 # **Dica:** Um cliente que é atribuído ao `'Cluster X'` deve se identificar melhor com os estabelecimentos representados pelo conjunto de atributos do `'Segment X'`.
 
+# In[27]:
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.heatmap((true_centers-data.mean())/data.std(ddof=0), square=True, annot=True, cbar=False);
+
+
+# In[28]:
+
+
+plt.figure()
+plt.axes().set_title("Segment 0")
+sns.barplot(x=true_centers.columns.values,y=true_centers.iloc[0].values)
+
+plt.figure()
+plt.axes().set_title("Segment 1")
+sns.barplot(x=true_centers.columns.values,y=true_centers.iloc[1].values)
+
+
 # **Resposta:**
+# 
+# - Cluster 1: provavelmente representa cafés e/ou restaurantes que servem comida fresca devido ao forte peso sobre a categoria Fresh. É consistente com a previsão original para como um restaurante deveria parecer.
+# 
+# - Cluster 2: as quantidades de Grocery e Milk são predominantes, os valores destes segmentos neste cluster excedem as medias observadas na seção de exploração dos dados, o que sugere que são distribuidores a granel ou grandes revendedores, como supermercados.
 
 # ### Questão 9
 # *Para cada amostra de ponto, qual segmento de cliente da* ***Questão 8*** *é melhor representado? As previsões para cada amostra de ponto são consistentes com isso?*
 # 
 # Execute o bloco de códigos abaixo para saber a previsão de segmento para cada amostra de ponto.
 
-# In[ ]:
+# In[29]:
 
 
 # Mostre as previsões
@@ -407,6 +482,24 @@ for i, pred in enumerate(sample_preds):
 
 
 # **Resposta:**
+# 
+# - Indice 5 (0)
+#  - Avaliação inicial: Restaurante devido a combinação Milk e Fresh
+#  - Avaliação do modelo: Supermercado
+#  - Comentário: Minha interpretação da combinação Fresh + Milk foi de que se tratava de um restaurante mas o modelo avaliou de forma diferente.
+# 
+# - Indice 10 (1)
+#  - Avaliação inicial: Mercearia devido a Grocery e Milk
+#  - Avaliação do modelo: Supermercado
+#  - Comentário: Eu entendi a predominância de Grocery como sendo uma caracteristica de supermercados e neste caso acertei!
+#  
+# - Indice 75 (0)
+#  - Avaliação inicial: Fornecedor devido a Fresh
+#  - Avaliação do modelo: Restaurante
+#  - Comentário: Eu entendi a predominância de Fresh como sendo uma caracteristica de fornecedores e o modelo avaliou como restaurante.
+#  
+# 
+# Esta comparação pode sugerir que o modelo não performou bem ou que minha avaliação dos exemplos foi muito distorcida, mas acredito que seja apenas uma diferença na interpretação. O modelo avaliou que um cliente com uma variedade de características fortes como Fresh, Milk, Grocery, Frozen sugere que seja o Cluster 2 (supermercado ou distribuidor). Clientes com um foco particular em uma única caracteristica (Fresh)  são considerados Cluster 1 (restaurantes). Isso realmente parece uma interpretação válida que poderia ser feita inicialmente.
 
 # ## Conclusão
 
