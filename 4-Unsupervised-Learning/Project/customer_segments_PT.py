@@ -361,7 +361,7 @@ display(pd.DataFrame(np.round(pca_samples, 4), columns = ['Dimension 1', 'Dimens
 #  - Importar sklearn.metrics.silhouette_score e calcular o coeficiente de silhueta do `reduced_data` contra o do `preds`.
 #    - Atribuir o coeficiente de silhueta para o `score` e imprimir o resultado.
 
-# In[20]:
+# In[13]:
 
 
 from sklearn.mixture import GMM
@@ -396,7 +396,7 @@ for i in range(2, 11):
 # ### Visualização de Cluster
 # Uma vez que você escolheu o número ótimo de clusters para seu algoritmo de clustering utilizando o método de pontuação acima, agora você pode visualizar os resultados ao executar o bloco de código abaixo. Note que, para propósitos de experimentação, é de bom tom que você ajuste o número de clusters para o seu algoritmo de cluster para ver várias visualizações. A visualização final fornecida deve, entretanto, corresponder com o número ótimo de clusters. 
 
-# In[22]:
+# In[14]:
 
 
 clusterer = GMM(n_components=2, random_state=42)
@@ -421,7 +421,7 @@ rs.cluster_results(reduced_data, preds, centers, pca_samples)
 #  - Aplicar a função inversa do `np.log` para o `log_centers` utilizando `np.exp`, e atribuir os verdadeiros centros para o `true_centers`.
 # 
 
-# In[23]:
+# In[15]:
 
 
 # TODO: Transforme inversamento os centros
@@ -441,7 +441,7 @@ display(true_centers)
 # Considere o gasto total de compra de cada categoria de produto para os pontos de dados representativos acima e reporte a descrição estatística do conjunto de dados no começo do projeto. Qual conjunto de estabelecimentos cada segmentação de clientes representa?*  
 # **Dica:** Um cliente que é atribuído ao `'Cluster X'` deve se identificar melhor com os estabelecimentos representados pelo conjunto de atributos do `'Segment X'`.
 
-# In[27]:
+# In[16]:
 
 
 import seaborn as sns
@@ -450,7 +450,7 @@ import matplotlib.pyplot as plt
 sns.heatmap((true_centers-data.mean())/data.std(ddof=0), square=True, annot=True, cbar=False);
 
 
-# In[28]:
+# In[17]:
 
 
 plt.figure()
@@ -473,7 +473,7 @@ sns.barplot(x=true_centers.columns.values,y=true_centers.iloc[1].values)
 # 
 # Execute o bloco de códigos abaixo para saber a previsão de segmento para cada amostra de ponto.
 
-# In[29]:
+# In[18]:
 
 
 # Mostre as previsões
@@ -510,6 +510,16 @@ for i, pred in enumerate(sample_preds):
 # **Dica:** Podemos supor que as mudanças afetam todos os clientes igualmente? Como podemos determinar quais grupos de clientes são os mais afetados?
 
 # **Resposta:**
+# 
+# - O modelo estabeleceu dois tipos principais de clientes, o Cluster 2 supermercados e/ou distribuidores a granel e o Cluster 1 restaurantes que armazenam alimentos frescos.
+# 
+# - É possível que os clientes do Cluster 1 que serve alimentos frescos vão querer entrega de  5 dias por semana para manter a comida fresca
+# 
+# - O Cluster 2 pode ser mais flexível, já que eles compram uma variedade maior de produtos perecíveis e não perecíveis, portanto, não necessitam de uma entrega diária.
+# 
+# Com isso em mente, a empresa poderia executar testes A/B e avaliar. Ao escolher um subconjunto de clientes de cada Cluster, eles podem avaliar o feedback separadamente.
+# 
+# Se uma tendência for encontrada em um cluster particular, ele permite que a empresa tome decisões direcionadas que beneficiam seus clientes, levando em conta o perfil deles. Isso é muito melhor do que generalizaria toda a base de clientes.
 
 # ### Questão 11
 # A estrutura adicional é derivada dos dados não rotulados originalmente quando utilizado as técnicas de clustering. Dado que cada cliente tem um **segmento de cliente** que melhor se identifica (dependendo do algoritmo de clustering aplicado), podemos considerar os *segmentos de cliente* como um **atributo construído (engineered)** para os dados. Assumindo que o distribuidor de atacado adquiriu recentemente dez novos clientes e cada um deles forneceu estimativas dos gastos anuais para cada categoria de produto. Sabendo dessas estimativas, o distribuidor de atacado quer classificar cada novo cliente em uma **segmentação de clientes** para determinar o serviço de entrega mais apropriado.  
@@ -517,6 +527,14 @@ for i, pred in enumerate(sample_preds):
 # **Dica:** Um aprendiz supervisionado pode ser utilizado para treinar os clientes originais. Qual seria a variável alvo?
 
 # **Resposta:**
+# 
+# É possível usar técnicas de aprendizado semi-supervisionado para classificar os clientes novos:
+# 
+# - Ao usar, inicialmente, uma abordagem de "clusterização", como o GMM, estabelecemos clusters e usamos isso como uma nova feature. Podemos chamar essa nova feature de "Segmento de clientes" e podemos atribuir valores para as classes (como 1 e 2) para estes novos clientes 
+# 
+# - Em seguida, podemos usar uma técnica de aprendizagem supervisionada, por exemplo, uma SVM  com uma variável alvo de "Segmento de Cliente"
+# 
+# - Podemos então otimizar o modelo de aprendizagem supervisionada para melhor classificar os novos clientes.
 
 # ### Visualizando Distribuições Subjacentes
 # 
@@ -524,7 +542,7 @@ for i, pred in enumerate(sample_preds):
 # 
 # Execute o código abaixo para qual ponto de dados é rotulado como`'HoReCa'` (Hotel/Restaurante/Café) ou o espaço reduzido `'Retail'`. Al´´em disso, você vai encontrar as amostras de pontos circuladas no corpo, que identificará seu rótulo.
 
-# In[ ]:
+# In[19]:
 
 
 # Mostre os resultados do clustering baseado nos dados do 'Channel'
@@ -535,6 +553,12 @@ rs.channel_results(reduced_data, outliers, pca_samples)
 # *Quão bom é o algoritmo de clustering e o números de clusters que você escolheu comparado a essa distribuição subjacente de clientes de Hotel/Restaurante/Café a um cliente Varejista? Há segmentos de clientes que podem ser classificados puramente como 'Varejistas' ou 'Hotéis/Restaurantes/Cafés' nessa distribuição? Você consideraria essas classificações como consistentes comparada a sua definição de segmentação de clientes anterior?*
 
 # **Resposta:**
+# 
+# - Os dados reais se parecem muito com nossos clusters gerados anteriormente. Isso mostra que o agrupamento GMM conseguiu estabelecer as relações muito bem. Não foi possível capturar alguns dos pontos de dados, em especial os varejistas no cluster Hotel/Restaurante/Café.
+# 
+# - Os dados reais tem uma separação menos definida entre os clusters, mas podemos dizer que os datapoints com o 1º PC (menor que 4) e o 2º PC (menor que 2) são provavelmente um varejista. 
+# 
+# - Sim. São quase as suposições feitas em relação a classificação, Cluster 1 restaurantes/cafés e o Cluster 2 um Distribuidor ou supermercado, o que é equivalente aos varejistas.
 
 # > **Nota**: Uma vez que você completou todas as implementações de código e respondeu todas as questões acima com êxito, você pode finalizar seu trabalho exportando um iPython Notebook como um documento HTML. Você pode fazer isso utilizando o menu acima e navegando até  
 # **File -> Download as -> HTML (.html)**. Inclua o documento finalizado junto com esse Notebook para o seu envio.
