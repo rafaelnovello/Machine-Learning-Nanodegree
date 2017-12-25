@@ -117,7 +117,7 @@ score
 
 # **Resposta:**
 # 
-# Foi usado o atributo Grocery e a pontuação obtida foi de 69%. Eu acredito que este atributo é sim necessário para identificar os hábitos de compra dos clientes por se tratar de um perfil de compra mais essencial, como identificado na questão 1 são mercados, mercearias e afins onde são vendidos produtos mais importantes e essenciais no dia-a-dia.
+# Foi usado o atributo Grocery e a pontuação obtida foi de 69%. Acredito que este atributo não é tão importante para identificar os hábitos de compra dos clientes por ser possível preve-lo usando os demais atributos, isto significa que Grocery não contribui tanto para a identificação de hábitos dos clientes.
 
 # ### Visualizando a Distribuição de Atributos
 # Para entender melhor o conjunto de dados, você pode construir uma matriz de dispersão de cada um dos seis atributos dos produtos presentes nos dados. Se você perceber que o atributo que você tentou prever acima é relevante para identificar um cliente específico, então a matriz de dispersão abaixo pode não mostrar nenhuma relação entre o atributo e os outros. Da mesma forma, se você acredita que o atributo não é relevante para identificar um cliente específico, a matriz de dispersão pode mostrar uma relação entre aquele e outros atributos dos dados. Execute o bloco de código abaixo para produzir uma matriz de dispersão.
@@ -137,9 +137,9 @@ pd.scatter_matrix(data, alpha = 0.3, figsize = (14,8), diagonal = 'kde');
 # 
 # Aparentemente, Grocery e Detergents_paper apresentão a maior correlação, mas Milk e Grocery e Milk e Detergents_paper também apresentão algum grau de correlação.
 # 
-# Esta correlação confirma minha suspeita em relação a importancia do atributo Grocery já que o mesmo aparenta correlação com outros atributos do dataset.
+# Esta correlação confirma minha suspeita em relação a importancia do atributo Grocery já que o mesmo tem grande correlação com Detergents_paper.
 # 
-# Os dados entre Grocery e Detergents_paper são distribuidos de forma bem linear, mostrando uma correlação direta entre eles.
+# A distribuição dos dados parece bem concentrada na origem e não segue um perfil normal. Isso sugere que lojas menores comprometem a maioria dos clientes.
 
 # ## Pré-processamento de Dados
 # Nesta seção, você irá pré-processar os dados para criar uma melhor representação dos clientes ao executar um escalonamento dos dados e detectando os discrepantes. Pré-processar os dados é geralmente um passo fundamental para assegurar que os resultados obtidos na análise são importantes e significativos.
@@ -281,13 +281,13 @@ pca_results = rs.pca_results(good_data, pca)
 # 
 # Cada componente representa diferentes setores de gastos dos clientes:
 # 
-# - O primeiro componente representa uma grande variedade, principalmente Detergents_Paper, mas também fornece informações para Milk e Grocery. Porem, representa mal as categorias Fresh e Frozen e precisa do 2º componente para ajudar. Ele poderia representar a categoria de gastos com "conveniência" ou "supermercado".
+# - O primeiro componente esta correlacionado principalmente Detergents_Paper, mas também com Milk e Grocery, isso sugere que estes variam em conjunto e que o componente aumento com o aumento destas variáveis. Porem, este componente esta pouco correlacionado com Fresh e Frozen (correlação oposta) e precisa do 2º componente para ajudar. Ele poderia representar a categoria de gastos com "conveniência" ou "supermercado".
 # 
-# - O segundo componente representa melhor os recursos Fresh, Frozen e Delicatessen enquanto representa mal os outros recursos. Ele pode representar os clientes que estão na indústria de hotelaria ou restaurantes.
+# - O segundo componente representa melhor os recursos Fresh, Frozen e Delicatessen - indicando que o componente aumenta com o aumento destas variáveis - enquanto representa mal os outros recursos. Ele pode representar os clientes que estão na indústria de hotelaria ou restaurantes.
 # 
-# - O terceiro componente representa Fresh e Detergents_Paper. Ele poderia representar pequenas lojas, com itens de conveniência e pequenas quantidades de mantimentos.
+# - O terceiro componente apresenta grande corretação com Fresh e Delicatessen de formas distintas. Com Fresh a correlação é direta, aumentando junto com esta variável. Com Delicatessen a correlação é oposta, aumentando com a diminuição desta variável.
 # 
-# - O quarto componente representa Frozen e Detergents_Paper. Ele poderia representar compradores em massa de produtos congelados, como importadores de peixe.
+# - O quarto componente apresenta grande corretação com Frozen e Delicatessen de formas distintas. Com Frozen a correlação é direta, aumentando junto com esta variável. Com Delicatessen a correlação é oposta, aumentando com a diminuição desta variável.
 
 # ### Observação
 # Execute o código abaixo para ver como a amostra de log transformado mudou depois de receber a transformação da PCA aplicada a ele em seis dimensões. Observe o valor numérico para as quatro primeiras dimensões para os pontos da amostra. Considere se isso for consistente com sua interpretação inicial dos pontos da amostra.
