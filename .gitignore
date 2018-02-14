@@ -3,3 +3,4 @@
 *.zip
 .ipynb_checkpoints
 data/
+input/
