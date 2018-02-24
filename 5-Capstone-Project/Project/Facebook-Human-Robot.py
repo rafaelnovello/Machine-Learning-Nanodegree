@@ -127,20 +127,28 @@ y = np.ravel(train_bids.outcome)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 
-# In[18]:
+# Abaixo vamos confirmar se os conjuntos de treino e teste preservaram as proporções do dataset original
+
+# In[12]:
 
 
 from __future__ import division
 from collections import Counter
 
+print("treino")
 x = Counter(y_train)
 print(x[0.0]/len(y_train))
 print(x[1.0]/len(y_train))
 
+print("teste")
+x = Counter(y_test)
+print(x[0.0]/len(y_test))
+print(x[1.0]/len(y_test))
+
 
 # Abaixo será feito o treino do modelo de árvore de decisão. Este modelo nos dirá a importância de cada variável do dataset e será usado para uma primeira avaliação da nossa capacidade de classificação.
 
-# In[14]:
+# In[13]:
 
 
 forest = ExtraTreesClassifier(
@@ -155,7 +163,7 @@ forest.fit(X_train, y_train)
 
 # Abaixo são mostradas as variáveis e suas importâncias em uma visualização em barras. As variáveis *address*, *bidder_id*, *payment_account* e *merchandise* foram identificadas como as mais importantes para o modelo.
 
-# In[15]:
+# In[14]:
 
 
 importances = forest.feature_importances_
@@ -172,7 +180,7 @@ plt.xlim([-1, X.shape[1]])
 plt.show()
 
 
-# In[16]:
+# In[15]:
 
 
 def plot_confusion_matrix(cm, classes,
@@ -212,7 +220,7 @@ def plot_confusion_matrix(cm, classes,
 
 # Abaixo o modelo de árvore de decisão é testado usando matriz de confusão, precision score e recall score.
 
-# In[17]:
+# In[16]:
 
 
 class_names = ['human', 'robot']
@@ -225,7 +233,7 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
                       title='Confusion matrix, with normalization')
 
 
-# In[34]:
+# In[17]:
 
 
 y_scores = forest.predict_proba(X_test)[:,1]
@@ -235,7 +243,9 @@ print("Recall Score: %s" % recall_score(y_test, y_pred))
 print("ROC AUC Score: %s" % roc_auc_score(y_test, y_scores))
 
 
-# In[37]:
+# Abaixo faremos a plotagem da curva ROC que é usada no desafio como método de avaliação
+
+# In[18]:
 
 
 from sklearn.metrics import roc_curve, auc
@@ -262,7 +272,7 @@ plt.show()
 
 # Como sugerido na proposta de projeto, vamos comparar o desempenho deste modelo treinado com um classificador "Dummy".
 
-# In[22]:
+# In[19]:
 
 
 dummy = DummyClassifier(random_state=42)
@@ -278,7 +288,7 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
                       title='Confusion matrix, with normalization')
 
 
-# In[26]:
+# In[20]:
 
 
 print("Precision Score: %s" % precision_score(y_test, dummy_predict))
@@ -286,7 +296,7 @@ print("Recall Score: %s" % recall_score(y_test, dummy_predict))
 print("ROC AUC Score: %s" % roc_auc_score(y_test, dummy_predict))
 
 
-# In[38]:
+# In[21]:
 
 
 y_scores = dummy.predict_proba(X_test)[:,1]
@@ -304,4 +314,107 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver operating characteristic')
 plt.legend(loc="lower right")
 plt.show()
+
+
+# Os testes feitos até aqui reaproveitaram um modelo que foi treinado com o objetivo de avaliar as features disponíveis. Vamos agora treinar outros algoritmos para vermos os resultados.
+
+# In[22]:
+
+
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+
+
+# In[23]:
+
+
+names = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
+         "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
+         "Naive Bayes", "QDA"]
+
+classifiers = [
+    KNeighborsClassifier(3, n_jobs=4),
+    SVC(kernel="linear", C=0.025, class_weight=[{0.0:0.86, 1.0:0.13}]),
+    SVC(gamma=2, C=1, class_weight=[{0.0:0.86, 1.0:0.13}]),
+    GaussianProcessClassifier(1.0 * RBF(1.0), n_jobs=4),
+    DecisionTreeClassifier(max_depth=5, class_weight=[{0.0:0.86, 1.0:0.13}]),
+    RandomForestClassifier(max_depth=5, n_estimators=10, n_jobs=4),
+    MLPClassifier(alpha=1),
+    AdaBoostClassifier(),
+    GaussianNB(),
+    QuadraticDiscriminantAnalysis()
+]
+
+
+# In[24]:
+
+
+results = []
+for name, clf in zip(names, classifiers):
+    print(name)
+    try:
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        y_scores = clf.predict_proba(X_test)[:,1]
+    except:
+        print "Could not train %s model" % name
+        continue
+
+    results.append({
+        'name': name,
+        'precision': precision_score(y_test, y_pred),
+        'recal': recall_score(y_test, y_pred),
+        'ROC score': roc_auc_score(y_test, y_scores)
+    }) 
+
+
+# ## Checkpoint
+# 
+# Salvandos os dados para poder prosseguir daqui.
+
+# In[30]:
+
+
+import pickle
+
+with open('../input/train_test.pkl', 'wb') as f:
+    pickle.dump([X_train, X_test, y_train, y_test], f)
+
+with open('../input/results.pkl', 'wb') as f:
+    pickle.dump(results, f)
+
+
+# Carregando os dados
+
+# In[33]:
+
+
+import pickle
+
+with open('../input/train_test.pkl', 'rb') as f:
+    X_train, X_test, y_train, y_test = pickle.load(f)
+
+with open('../input/results.pkl', 'rb') as f:
+    results = pickle.load(f)
+
+
+# In[44]:
+
+
+results = pd.DataFrame(results)
+results = results.set_index('name')
+
+
+# In[49]:
+
+
+results['mean'] = results.mean(axis=1)
+results
 
