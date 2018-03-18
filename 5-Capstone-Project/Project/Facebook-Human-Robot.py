@@ -393,10 +393,29 @@ with open('../input/results.pkl', 'wb') as f:
 
 # Carregando os dados
 
-# In[33]:
+# In[7]:
 
 
 import pickle
+import itertools
+from collections import defaultdict
+
+import numpy as np
+import pandas as pd
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import confusion_matrix
+
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
+
+get_ipython().magic(u'matplotlib inline')
 
 with open('../input/train_test.pkl', 'rb') as f:
     X_train, X_test, y_train, y_test = pickle.load(f)
@@ -405,16 +424,60 @@ with open('../input/results.pkl', 'rb') as f:
     results = pickle.load(f)
 
 
-# In[44]:
+# In[3]:
 
 
 results = pd.DataFrame(results)
 results = results.set_index('name')
 
 
-# In[49]:
+# In[4]:
 
 
 results['mean'] = results.mean(axis=1)
 results
+
+
+# Com os parâmetros usados (com poucas alterações), os algorítmos AdaBoost e Random Forest apresentaram as melhores médias entre o ROC Score, Precision e Recall. O modelo escolhido será AdaBoost pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com AdaBoost.
+
+# In[8]:
+
+
+params = {
+    'n_estimators': [10, 25, 50, 75, 100],
+    'learning_rate': [.05, .1, .5, .75, 1, 1.5],
+    'algorithm': ['SAMME', 'SAMME.R']
+}
+
+model = AdaBoostClassifier()
+clf = GridSearchCV(model, params, n_jobs=4)
+clf.fit(X_train, y_train)
+
+
+# In[11]:
+
+
+clf.cv_results_['rank_test_score']
+
+
+# In[16]:
+
+
+y_pred = clf.predict(X_test)
+y_scores = clf.predict_proba(X_test)[:,1]
+
+print 'precision', precision_score(y_test, y_pred)
+print 'recal', recall_score(y_test, y_pred)
+print 'ROC score', roc_auc_score(y_test, y_scores)
+
+
+# Com o modelo obtido pelo Grid Search não só conseguimos ótimas pontuações de ROC e Precision mas melhoramos muito a pontuação de Recall (de 66% para 81%), o que ajuda a concluir que este seria o modelo ideal.
+
+# ## Salvando o modelo treinado
+
+# In[18]:
+
+
+with open('../input/results.pkl', 'wb') as f:
+    pickle.dump(results, f)
 
