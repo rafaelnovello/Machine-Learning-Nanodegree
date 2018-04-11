@@ -1,8 +1,6 @@
 
 # coding: utf-8
 
-# https://github.com/wallinm1/kaggle-facebook-bot/blob/master/facebook_notebook.ipynb
-
 # # Nanodegree Engenheiro de Machine Learning
 # 
 # ## Capstone Project
@@ -67,6 +65,12 @@ train_bids.head()
 train_bids.dropna(subset=['outcome'], inplace=True)
 train_bids.dropna(subset=['country'], inplace=True)
 train_bids.head()
+
+
+# In[11]:
+
+
+train_bids.describe(include='all')
 
 
 # In[6]:
