@@ -67,13 +67,13 @@ train_bids.dropna(subset=['country'], inplace=True)
 train_bids.head()
 
 
-# In[11]:
+# In[6]:
 
 
 train_bids.describe(include='all')
 
 
-# In[6]:
+# In[7]:
 
 
 del train
@@ -82,7 +82,7 @@ del bids
 
 # Abaixo confirmamos a proporção do desbalanceamento do dataset. Apenas 13,4% dos lances foram feitos por robôs.
 
-# In[7]:
+# In[8]:
 
 
 to_plot = train_bids.groupby('outcome')['bid_id'].count()
@@ -96,7 +96,7 @@ ax.set(ylabel="Percent");
 # 
 # Outras visualizações foram geradas mas as mesmas não agregaram mais entendimento dos dados e por isso foram removidas.
 
-# In[8]:
+# In[9]:
 
 
 to_plot = train_bids.groupby(['outcome', 'merchandise'])['bid_id'].count()
@@ -106,7 +106,7 @@ sns.barplot(x='merchandise', y='bid_id', hue='outcome', data=to_plot.reset_index
 
 # Abaixo vamos preparar os dados categóricos da base para alimentar um modelo de árvore de decisão que nos ajudará a entender a importancia de cada variável na categorização dos lances. Usaremos a classe *LabelEncoder* do pacote *scikit-learn* para isso.
 
-# In[9]:
+# In[10]:
 
 
 X = train_bids.copy()
@@ -119,13 +119,13 @@ X.head()
 
 # Abaixo faremos o ajuste da variável alvo e separaremos o dataset em conjuntos de treino e teste. Usaremos o conjunto de teste para avaliar o modelo gerado.
 
-# In[10]:
+# In[11]:
 
 
 y = np.ravel(train_bids.outcome)
 
 
-# In[11]:
+# In[12]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -133,7 +133,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 
 # Abaixo vamos confirmar se os conjuntos de treino e teste preservaram as proporções do dataset original
 
-# In[12]:
+# In[13]:
 
 
 from __future__ import division
@@ -152,7 +152,7 @@ print(x[1.0]/len(y_test))
 
 # Abaixo será feito o treino do modelo de árvore de decisão. Este modelo nos dirá a importância de cada variável do dataset e será usado para uma primeira avaliação da nossa capacidade de classificação.
 
-# In[13]:
+# In[14]:
 
 
 forest = ExtraTreesClassifier(
@@ -167,7 +167,7 @@ forest.fit(X_train, y_train)
 
 # Abaixo são mostradas as variáveis e suas importâncias em uma visualização em barras. As variáveis *address*, *bidder_id*, *payment_account* e *merchandise* foram identificadas como as mais importantes para o modelo.
 
-# In[14]:
+# In[15]:
 
 
 importances = forest.feature_importances_
@@ -184,7 +184,7 @@ plt.xlim([-1, X.shape[1]])
 plt.show()
 
 
-# In[15]:
+# In[16]:
 
 
 def plot_confusion_matrix(cm, classes,
@@ -224,7 +224,7 @@ def plot_confusion_matrix(cm, classes,
 
 # Abaixo o modelo de árvore de decisão é testado usando matriz de confusão, precision score e recall score.
 
-# In[16]:
+# In[17]:
 
 
 class_names = ['human', 'robot']
@@ -237,7 +237,7 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
                       title='Confusion matrix, with normalization')
 
 
-# In[17]:
+# In[18]:
 
 
 y_scores = forest.predict_proba(X_test)[:,1]
@@ -249,7 +249,7 @@ print("ROC AUC Score: %s" % roc_auc_score(y_test, y_scores))
 
 # Abaixo faremos a plotagem da curva ROC que é usada no desafio como método de avaliação
 
-# In[18]:
+# In[19]:
 
 
 from sklearn.metrics import roc_curve, auc
@@ -274,9 +274,27 @@ plt.show()
 # 
 # ![kaggle](kaggle.png)
 
+# ---
+# ### Ajuste no dataset
+# 
+# Com base no modelo de arvore de decisão que nos mostrou as features mais importantes, vamos remover as colunas `ip`, `auction` e `device` que contribuem menos para a classificação dos lances. Após a deleção destas colunas os conjuntos de treinamento e teste são atualizados
+
+# In[20]:
+
+
+X = X.drop(['ip', 'auction', 'device'], axis=1)
+X.head()
+
+
+# In[21]:
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+
 # Como sugerido na proposta de projeto, vamos comparar o desempenho deste modelo treinado com um classificador "Dummy".
 
-# In[19]:
+# In[22]:
 
 
 dummy = DummyClassifier(random_state=42)
@@ -292,7 +310,7 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
                       title='Confusion matrix, with normalization')
 
 
-# In[20]:
+# In[23]:
 
 
 print("Precision Score: %s" % precision_score(y_test, dummy_predict))
@@ -300,7 +318,7 @@ print("Recall Score: %s" % recall_score(y_test, dummy_predict))
 print("ROC AUC Score: %s" % roc_auc_score(y_test, dummy_predict))
 
 
-# In[21]:
+# In[24]:
 
 
 y_scores = dummy.predict_proba(X_test)[:,1]
@@ -322,7 +340,7 @@ plt.show()
 
 # Os testes feitos até aqui reaproveitaram um modelo que foi treinado com o objetivo de avaliar as features disponíveis. Vamos agora treinar outros algoritmos para vermos os resultados.
 
-# In[22]:
+# In[25]:
 
 
 from sklearn.neural_network import MLPClassifier
@@ -336,7 +354,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 
-# In[23]:
+# In[26]:
 
 
 names = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
@@ -357,7 +375,7 @@ classifiers = [
 ]
 
 
-# In[24]:
+# In[27]:
 
 
 results = []
@@ -370,7 +388,7 @@ for name, clf in zip(names, classifiers):
     except:
         print "Could not train %s model" % name
         continue
-
+ 
     results.append({
         'name': name,
         'precision': precision_score(y_test, y_pred),
@@ -383,7 +401,7 @@ for name, clf in zip(names, classifiers):
 # 
 # Salvandos os dados para poder prosseguir daqui.
 
-# In[30]:
+# In[1]:
 
 
 import pickle
@@ -397,7 +415,7 @@ with open('../input/results.pkl', 'wb') as f:
 
 # Carregando os dados
 
-# In[7]:
+# In[3]:
 
 
 import pickle
@@ -415,7 +433,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import confusion_matrix
 
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 
@@ -428,33 +446,34 @@ with open('../input/results.pkl', 'rb') as f:
     results = pickle.load(f)
 
 
-# In[3]:
+# In[30]:
 
 
 results = pd.DataFrame(results)
 results = results.set_index('name')
 
 
-# In[4]:
+# In[32]:
 
 
 results['mean'] = results.mean(axis=1)
-results
+results.sort_values('mean')
 
 
-# Com os parâmetros usados (com poucas alterações), os algorítmos AdaBoost e Random Forest apresentaram as melhores médias entre o ROC Score, Precision e Recall. O modelo escolhido será AdaBoost pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com AdaBoost.
+# Com os parâmetros usados (com poucas alterações), os algorítmos Nearest Neighbors e Random Forest apresentaram as melhores médias entre o ROC Score, Precision e Recall. O modelo escolhido será Nearest Neighbors pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com Nearest Neighbors.
 
-# In[8]:
+# In[40]:
 
 
 params = {
-    'n_estimators': [10, 25, 50, 75, 100],
-    'learning_rate': [.05, .1, .5, .75, 1, 1.5],
-    'algorithm': ['SAMME', 'SAMME.R']
+    'n_neighbors': [3, 5, 7, 10],
+    'weights': ['uniform', 'distance'],
+    'algorithm': ['brute', 'ball_tree', 'kd_tree'],
+    'p':[1, 2]
 }
 
-model = AdaBoostClassifier()
-clf = GridSearchCV(model, params, n_jobs=4)
+model = KNeighborsClassifier()
+clf = GridSearchCV(model, params, n_jobs=1)
 clf.fit(X_train, y_train)
 
 
