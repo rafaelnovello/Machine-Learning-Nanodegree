@@ -227,7 +227,7 @@ def plot_confusion_matrix(cm, classes,
 # In[17]:
 
 
-class_names = ['human', 'robot']
+class_names = ['robot','human']
 y_pred = forest.predict(X_test)
 cnf_matrix = confusion_matrix(y_test, y_pred)
 np.set_printoptions(precision=4)
@@ -242,8 +242,8 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
 
 y_scores = forest.predict_proba(X_test)[:,1]
 
-print("Precision Score: %s" % precision_score(y_test, y_pred))
-print("Recall Score: %s" % recall_score(y_test, y_pred))
+print("Precision Score: %s" % precision_score(y_test, y_pred, pos_label=0))
+print("Recall Score: %s" % recall_score(y_test, y_pred, pos_label=0))
 print("ROC AUC Score: %s" % roc_auc_score(y_test, y_scores))
 
 
@@ -301,7 +301,7 @@ dummy = DummyClassifier(random_state=42)
 dummy.fit(X_train, y_train)
 dummy_predict = dummy.predict(X_test)
 
-class_names = ['human', 'robot']
+class_names = ['robot', 'human']
 cnf_matrix = confusion_matrix(y_test, dummy_predict)
 np.set_printoptions(precision=4)
 
@@ -313,8 +313,8 @@ plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
 # In[23]:
 
 
-print("Precision Score: %s" % precision_score(y_test, dummy_predict))
-print("Recall Score: %s" % recall_score(y_test, dummy_predict))
+print("Precision Score: %s" % precision_score(y_test, dummy_predict, pos_label=0))
+print("Recall Score: %s" % recall_score(y_test, dummy_predict, pos_label=0))
 print("ROC AUC Score: %s" % roc_auc_score(y_test, dummy_predict))
 
 
@@ -391,8 +391,8 @@ for name, clf in zip(names, classifiers):
  
     results.append({
         'name': name,
-        'precision': precision_score(y_test, y_pred),
-        'recal': recall_score(y_test, y_pred),
+        'precision': precision_score(y_test, y_pred, pos_label=0),
+        'recall': recall_score(y_test, y_pred, pos_label=0),
         'ROC score': roc_auc_score(y_test, y_scores)
     }) 
 
@@ -401,7 +401,7 @@ for name, clf in zip(names, classifiers):
 # 
 # Salvandos os dados para poder prosseguir daqui.
 
-# In[1]:
+# In[28]:
 
 
 import pickle
@@ -415,7 +415,7 @@ with open('../input/results.pkl', 'wb') as f:
 
 # Carregando os dados
 
-# In[3]:
+# In[1]:
 
 
 import pickle
@@ -435,7 +435,7 @@ from sklearn.metrics import confusion_matrix
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 get_ipython().magic(u'matplotlib inline')
 
@@ -446,51 +446,50 @@ with open('../input/results.pkl', 'rb') as f:
     results = pickle.load(f)
 
 
-# In[30]:
+# In[2]:
 
 
 results = pd.DataFrame(results)
 results = results.set_index('name')
 
 
-# In[32]:
+# In[3]:
 
 
-results['mean'] = results.mean(axis=1)
-results.sort_values('mean')
+results.sort_values(['recall', 'precision'])
 
 
-# Com os parâmetros usados (com poucas alterações), os algorítmos Nearest Neighbors e Random Forest apresentaram as melhores médias entre o ROC Score, Precision e Recall. O modelo escolhido será Nearest Neighbors pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com Nearest Neighbors.
+# Com os parâmetros usados (com poucas alterações), os algorítmos Nearest Neighbors e Random Forest apresentaram os melhores valores de Precision e Recall. O modelo escolhido será Nearest Neighbors pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com Nearest Neighbors.
 
-# In[40]:
+# In[ ]:
 
 
 params = {
-    'n_neighbors': [3, 5, 7, 10],
+    'n_neighbors': [3, 7],
     'weights': ['uniform', 'distance'],
-    'algorithm': ['brute', 'ball_tree', 'kd_tree'],
+    'algorithm': ['ball_tree', 'kd_tree'],
     'p':[1, 2]
 }
 
-model = KNeighborsClassifier()
-clf = GridSearchCV(model, params, n_jobs=1)
+model = KNeighborsClassifier(n_jobs=3)
+clf = RandomizedSearchCV(model, params, n_jobs=1, verbose=2, n_iter=4)
 clf.fit(X_train, y_train)
 
 
-# In[11]:
+# In[ ]:
 
 
 clf.cv_results_['rank_test_score']
 
 
-# In[16]:
+# In[ ]:
 
 
 y_pred = clf.predict(X_test)
 y_scores = clf.predict_proba(X_test)[:,1]
 
-print 'precision', precision_score(y_test, y_pred)
-print 'recal', recall_score(y_test, y_pred)
+print 'precision', precision_score(y_test, y_pred, pos_label=0)
+print 'recal', recall_score(y_test, y_pred, pos_label=0)
 print 'ROC score', roc_auc_score(y_test, y_scores)
 
 
@@ -498,9 +497,9 @@ print 'ROC score', roc_auc_score(y_test, y_scores)
 
 # ## Salvando o modelo treinado
 
-# In[18]:
+# In[ ]:
 
 
-with open('../input/results.pkl', 'wb') as f:
-    pickle.dump(results, f)
+with open('../input/model.pkl', 'wb') as f:
+    pickle.dump(clf, f)
 
