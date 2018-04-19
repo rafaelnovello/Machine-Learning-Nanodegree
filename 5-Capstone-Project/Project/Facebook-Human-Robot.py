@@ -184,7 +184,7 @@ plt.xlim([-1, X.shape[1]])
 plt.show()
 
 
-# In[16]:
+# In[11]:
 
 
 def plot_confusion_matrix(cm, classes,
@@ -461,7 +461,7 @@ results.sort_values(['recall', 'precision'])
 
 # Com os parâmetros usados (com poucas alterações), os algorítmos Nearest Neighbors e Random Forest apresentaram os melhores valores de Precision e Recall. O modelo escolhido será Nearest Neighbors pois o mesmo apresentou o melhor Recall entre os modelos testados. Vamos agora para a otimização dos parâmetros com Nearest Neighbors.
 
-# In[ ]:
+# In[4]:
 
 
 params = {
@@ -471,18 +471,20 @@ params = {
     'p':[1, 2]
 }
 
-model = KNeighborsClassifier(n_jobs=3)
+model = KNeighborsClassifier()
 clf = RandomizedSearchCV(model, params, n_jobs=1, verbose=2, n_iter=4)
 clf.fit(X_train, y_train)
 
 
-# In[ ]:
+# Abaixo estão os parametros otimizados pelo RandomizedSearchCV que representam o melhor modelo para este projeto.
+
+# In[9]:
 
 
-clf.cv_results_['rank_test_score']
+clf.best_params_
 
 
-# In[ ]:
+# In[6]:
 
 
 y_pred = clf.predict(X_test)
@@ -493,13 +495,27 @@ print 'recal', recall_score(y_test, y_pred, pos_label=0)
 print 'ROC score', roc_auc_score(y_test, y_scores)
 
 
-# Com o modelo obtido pelo Grid Search não só conseguimos ótimas pontuações de ROC e Precision mas melhoramos muito a pontuação de Recall (de 66% para 81%), o que ajuda a concluir que este seria o modelo ideal.
+# Com o modelo obtido pelo RandomizedSearchCV conseguimos pontuações melhores de ROC, Precision e Recall, o que ajuda a concluir que este seria o modelo ideal.
 
 # ## Salvando o modelo treinado
 
-# In[ ]:
+# In[7]:
 
 
 with open('../input/model.pkl', 'wb') as f:
     pickle.dump(clf, f)
+
+
+# Abaixo vamos mostrar uma matriz de confusão usando o modelo otimizado.
+
+# In[15]:
+
+
+class_names = ['robot', 'human']
+cnf_matrix = confusion_matrix(y_test, y_pred)
+np.set_printoptions(precision=4)
+
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
+                      title='Confusion matrix, with normalization')
 
